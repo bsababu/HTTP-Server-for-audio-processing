@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: audio-api
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../audio-data:/app/audio-data
+    environment:
+      - DATA_DIR=/app/audio-data
+    networks:
+      - audio-api-network
+
+networks:
+  audio-api-network:
+    driver: bridge

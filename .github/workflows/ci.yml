@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        pip install -r requirements.txt
     
     - name: Run tests
       run: |
@@ -30,16 +30,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
+    
     - name: Build Docker image
       run: |
         docker build -t audio-api:test .
     
     - name: Test Docker container
       run: |
-        docker run -d --name test-api -p 8000:8000 audio-api:test
+        docker run -d --name test-api -p 5001:5000 audio-api:test
         sleep 10
-        curl -f http://localhost:8000/health || exit 1
+        curl -f http://localhost:5001/health || exit 1
         docker stop test-api
         docker rm test-api
 
@@ -58,7 +58,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+        pip install -r requirements.txt
     
     - name: Start API server
       run: |

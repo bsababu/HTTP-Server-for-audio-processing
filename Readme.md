@@ -27,37 +27,37 @@ audio-api/
 │   └── test_main.py     # Test suite
 ├── .github/workflows/
 │   └── ci.yml          # CI/CD pipeline
-├── requirements.txt     # dependencies
-├── Dockerfile
-└── docker-compose.yaml
+├── requirements.txt     # Production dependencies
+└── docker/
+    ├── Dockerfile
+    └── docker-compose.yaml
 ```
 
 ### Quick Start with Docker
 ```bash
-git clone <repository-url>
+git clone https://github.com/bsababu/HTTP-Server-for-audio-processing.git
 cd audio-api
-docker-compose up -d
+docker-compose -f docker/docker-compose.yaml -p audio-api up -d
 ```
-API will be available at http://localhost:5000
+API will be available at http://localhost:5001
 
 ### Local Development Setup
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/bsababu/HTTP-Server-for-audio-processing.git
 cd audio-api
 
 # Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # this is on macOS/Linux, you can use `.venv\Scripts\activate` on Windows
-# Install dependencies
-pip install -r requirements-dev.txt
+source ../.venv/bin/activate  # this is on macOS/Linux, you can use `.venv\Scripts\activate` on Windows
+pip install -r requirements.txt # install dependencies
 
 # Run server
 python -m uvicorn app.main:app --reload --port 5000
 ```
 
 ### API Documentation
-Interactive API docs: http://localhost:5000/docs
+Interactive API documentation: http://127.0.0.1:5000/docs
 
 ## API Endpoints
 

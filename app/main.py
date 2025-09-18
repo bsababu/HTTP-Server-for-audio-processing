@@ -126,7 +126,7 @@ async def download_user_zip(user_id: str = Query(...)):
     headers = {
         "Content-Disposition": f"attachment; filename=uploads_{user_id}.zip"
         }
-    return StreamingResponse(buffer, media_type="application/zip", headers=headers, message="download zip", status_code=200)
+    return StreamingResponse(buffer, media_type="application/zip", headers=headers)
 
 @app.get("/files/{file_id}")
 async def get_file(file_id: str, user_id: str = Query(...)):
