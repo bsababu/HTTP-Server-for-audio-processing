@@ -2,6 +2,8 @@
 
 This is an HTTP Server for audio processing API built with FastAPI.
 
+## Getting Started
+
 ### Features
 
 - Upload and manage audio files with metadata (title, artist, description, tags, file size, timestamps)
@@ -9,13 +11,11 @@ This is an HTTP Server for audio processing API built with FastAPI.
 - Individual file operations (download, delete, info)
 - Bulk download as ZIP with metadata
 
-## Getting Started
-
 ### Prerequisites
 - Python 3.12
 - Docker
 
-## Project Structure
+### Project Structure
 
 ```
 audio-api/
@@ -33,7 +33,7 @@ audio-api/
     └── docker-compose.yaml
 ```
 
-### Quick Start with Docker
+### Quick build and Start with Docker
 ```bash
 git clone https://github.com/bsababu/HTTP-Server-for-audio-processing.git
 cd audio-api
@@ -79,10 +79,10 @@ pytest tests/ -v
 pytest tests/test_main.py::test_health -v
 ```
 
-## CI/CD with github workflows
-the ci-cd can be found in .github/workflows/ci.yml
+## CI/CD with GitHub workflows
+The CI-CD can be found in .github/workflows/ci.yml
 
 - **Test**: Runs pytest on Python 3.12
-- **Docker**: Builds and tests Docker container
+- **Docker**: Builds and tests Docker containers
 - **Integration**: End-to-end API testing
 
