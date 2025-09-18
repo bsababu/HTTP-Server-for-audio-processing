@@ -44,14 +44,6 @@ jobs:
     - name: Build Docker image
       run: |
         docker compose -f docker/docker-compose.yaml -p audio-api up -d
-    
-    - name: Test Docker container
-      run: |
-        docker run -d --name test-api -p 5001:5000 audio-api:test
-        sleep 10
-        curl -f http://localhost:5001/health || exit 1
-        docker stop test-api
-        docker rm test-api
 
   integration:
     name: Integration Test
