@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --tb=short
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Build Docker image
+      run: |
+        docker build -t audio-api:test .
+    
+    - name: Test Docker container
+      run: |
+        docker run -d --name test-api -p 8000:8000 audio-api:test
+        sleep 10
+        curl -f http://localhost:8000/health || exit 1
+        docker stop test-api
+        docker rm test-api
+
+  integration:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    needs: [test, docker]
+
+    steps:
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-dev.txt
+    
+    - name: Start API server
+      run: |
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 5000 &
+        sleep 5
+    
+    - name: Test API endpoints
+      run: |
+        curl -f http://localhost:5000/health
+        curl -f "http://localhost:5000/list?user_id=test" | grep -q '"count":0'
+        echo "All integration tests passed!"
+    
+    - name: Stop server
+      run: |
+        pkill -f uvicorn || true
