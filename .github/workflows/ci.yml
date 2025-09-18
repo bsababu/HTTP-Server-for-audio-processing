@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+defaults:
+  run:
+    working-directory: audio-api
+
 jobs:
   test:
     name: Test
@@ -13,9 +17,17 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.12"]
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -30,10 +42,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
     
     - name: Build Docker image
       run: |
-        docker build -t audio-api:test .
+        docker compose -f docker/docker-compose.yaml -p audio-api up -d
     
     - name: Test Docker container
       run: |
@@ -49,9 +63,11 @@ jobs:
     needs: [test, docker]
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.12"
     

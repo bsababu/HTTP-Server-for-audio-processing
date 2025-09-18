@@ -37,7 +37,7 @@ audio-api/
 ```bash
 git clone https://github.com/bsababu/HTTP-Server-for-audio-processing.git
 cd audio-api
-docker-compose -f docker/docker-compose.yaml -p audio-api up -d
+docker compose -f docker/docker-compose.yaml -p audio-api up -d --build
 ```
 API will be available at http://localhost:5001
 
