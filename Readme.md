@@ -1,6 +1,6 @@
 # Audio Processing Prototype
 
-This is an HTTP Server for audio processing API built with FastAPI.
+This is an HTTP Server for an audio processing API built with FastAPI.
 
 ## Getting Started
 
@@ -74,15 +74,12 @@ Interactive API documentation: http://127.0.0.1:5000/docs
 ```bash
 # Run all tests
 pytest tests/ -v
-
-# Run specific test
-pytest tests/test_main.py::test_health -v
 ```
 
 ## CI/CD with GitHub workflows
 The CI-CD can be found in .github/workflows/ci.yml
 
 - **Test**: Runs pytest on Python 3.12
-- **Docker**: Builds and tests Docker containers
+- **Docker**: Builds and start docker container
 - **Integration**: End-to-end API testing
 
