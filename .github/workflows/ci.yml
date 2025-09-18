@@ -27,11 +27,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r audio-api/requirements.txt
+        pip install -r requirements.txt
     
     - name: Run tests
       run: |
-        pytest audio-api/tests/ -v --tb=short
+        pytest tests/ -v --tb=short
 
   docker:
     name: Docker Build
@@ -43,7 +43,7 @@ jobs:
     
     - name: Build Docker image
       run: |
-        docker compose -f audio-api/docker/docker-compose.yaml -p audio-api up -d
+        docker compose -f docker/docker-compose.yaml -p audio-api up -d
     
     - name: Test Docker container
       run: |
@@ -70,11 +70,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r audio-api/requirements.txt
+        pip install -r requirements.txt
     
     - name: Start API server
       run: |
-        cd audio-api && python -m uvicorn app.main:app --host 0.0.0.0 --port 5000 &
+        python -m uvicorn app.main:app --host 0.0.0.0 --port 5000 &
         sleep 5
     
     - name: Test API endpoints
