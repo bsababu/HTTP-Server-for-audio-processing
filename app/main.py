@@ -1,24 +1,26 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
-from fastapi.responses import JSONResponse, StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
-import uuid
 import io
-import zipfile
 import json
 import os
-from .storage import Storage, MetadataEntry
+import uuid
+import zipfile
+from typing import List, Optional
+
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, StreamingResponse
+
 from .schema import UploadResponse
+from .storage import MetadataEntry, Storage
 
 app = FastAPI(title="Audio Processing Prototype")
 
 
 app.add_middleware(
-CORSMiddleware,
-allow_origins=["*"],
-allow_credentials=True,
-allow_methods=["*"],
-allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -37,14 +39,13 @@ async def list_uploads(user_id: str = Query(...), tag: Optional[str] = Query(Non
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
     results = await storage.list_user_uploads(user_id=user_id, tag=tag)
-    serializable_items = []
-    for r in results:
-        item_dict = r.model_dump()
-        if 'upload_timestamp' in item_dict and hasattr(item_dict['upload_timestamp'], 'isoformat'):
-            item_dict['upload_timestamp'] = item_dict['upload_timestamp'].isoformat()
-        serializable_items.append(item_dict)
-    
-    return JSONResponse(content={"user_id": user_id, "count": len(results), "items": serializable_items})
+    return JSONResponse(
+        content={
+            "user_id": user_id,
+            "count": len(results),
+            "items": [r.model_dump() for r in results]
+            }
+            )
 
 
 @app.post("/upload", response_model=UploadResponse)
@@ -53,9 +54,9 @@ async def upload_audio(
     tags: Optional[str] = Form(None),
     audio: UploadFile = File(...),
     title: Optional[str] = Form(None),
-    artist: Optional[str] = Form(None), 
+    artist: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    ):
+):
 
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
@@ -72,24 +73,24 @@ async def upload_audio(
         except Exception:
             parsed_tags = [t.strip() for t in tags.split(",") if t.strip()]
 
-    entry_id = f"audio-{uuid.uuid4().time}"
+    entry_id = str(uuid.uuid4())
     try:
-        audio.file.seek(0, 2)
-        file_size = audio.file.tell()
-        audio.file.seek(0) 
+        # Read file content to get size
+        file_content = await audio.read()
+        file_size = len(file_content)
         
         meta = MetadataEntry(
-        id=entry_id,
-        user_id=user_id,
-        filename=audio.filename,
-        content_type=audio.content_type or "application/octet-stream",
-        tags=parsed_tags,
-        file_size=file_size,
-        title=title,
-        artist=artist,
-        description=description,
+            id=entry_id,
+            user_id=user_id,
+            filename=audio.filename,
+            content_type=audio.content_type or "application/octet-stream",
+            tags=parsed_tags,
+            file_size=file_size,
+            title=title,
+            artist=artist,
+            description=description,
         )
-        await storage.save_upload(entry=meta, file=audio.file)
+        await storage.save_upload(entry=meta, file=file_content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"failed saving upload: {e}")
 
@@ -113,20 +114,16 @@ async def download_user_zip(user_id: str = Query(...)):
             arcname = os.path.basename(file_path)
             zf.write(file_path, arcname=f"uploads/{arcname}")
 
-        meta_list = []
-        for e in entries:
-            item_dict = e.model_dump()
-            if 'upload_timestamp' in item_dict and hasattr(item_dict['upload_timestamp'], 'isoformat'):
-                item_dict['upload_timestamp'] = item_dict['upload_timestamp'].isoformat()
-            meta_list.append(item_dict)
+        meta_list = [e.model_dump() for e in entries]
         zf.writestr("metadata.json", json.dumps(meta_list, indent=2, ensure_ascii=False))
 
     buffer.seek(0)
 
     headers = {
         "Content-Disposition": f"attachment; filename=uploads_{user_id}.zip"
-        }
+    }
     return StreamingResponse(buffer, media_type="application/zip", headers=headers)
+
 
 @app.get("/files/{file_id}")
 async def get_file(file_id: str, user_id: str = Query(...)):
@@ -145,7 +142,7 @@ async def get_file(file_id: str, user_id: str = Query(...)):
         raise HTTPException(status_code=404, detail="File not found on disk")
     
     return StreamingResponse(
-        open(file_path, "rb"), 
+        open(file_path, "rb"),
         media_type=entry.content_type,
         headers={"Content-Disposition": f"attachment; filename={entry.filename}"}
     )
@@ -184,10 +181,7 @@ async def get_file_info(file_id: str, user_id: str = Query(...)):
     file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
     
     entry_dict = entry.model_dump()
-    if 'upload_timestamp' in entry_dict and hasattr(entry_dict['upload_timestamp'], 'isoformat'):
-        entry_dict['upload_timestamp'] = entry_dict['upload_timestamp'].isoformat()
-    
-    entry_dict['file_size'] = file_size  
+    entry_dict['file_size'] = file_size
     return entry_dict
 
 

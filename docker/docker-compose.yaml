@@ -4,7 +4,7 @@ services:
   api:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: Dockerfile
     container_name: audio-api
     ports:
       - "5001:5000"

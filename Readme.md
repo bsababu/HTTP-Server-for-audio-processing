@@ -4,6 +4,8 @@ This is an HTTP Server for an audio processing API built with FastAPI.
 
 ## Getting Started
 
+## Getting Started
+
 ### Features
 
 - Upload and manage audio files with metadata (title, artist, description, tags, file size, timestamps)
