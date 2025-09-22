@@ -4,7 +4,7 @@ import os
 import uuid
 import zipfile
 from typing import List, Optional
-
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -14,6 +14,15 @@ from .storage import MetadataEntry, Storage
 
 app = FastAPI(title="Audio Processing Prototype")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    await storage.initialize()
+    yield
+    # Shutdown logic
+    await storage.cleanup()
+
+app.router.lifespan = lifespan
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,13 +34,6 @@ app.add_middleware(
 
 
 storage = Storage(base_path=os.getenv("DATA_DIR", "./audio-data"))
-
-
-@app.on_event("startup")
-async def startup_event():
-    await storage.ensure_metadata()
-
-
 
 @app.get("/list")
 async def list_uploads(user_id: str = Query(...), tag: Optional[str] = Query(None)):
